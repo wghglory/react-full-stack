@@ -1,0 +1,32 @@
+{
+  "name": "react-full-stack",
+  "version": "1.0.0",
+  "description": "Full stack React",
+  "main": "lib/server.js",
+  "repository": "https://github.com/wghglory/react-full-stack.git",
+  "author": "Guanghui Wang",
+  "license": "MIT",
+  "babel": {
+    "presets": ["react", "env", "stage-2"]
+  },
+  "scripts": {
+    "predev": "pm2 stop lib/server.js",
+    "dev": "pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
+    "dev:nodemon": "nodemon --exec babel-node lib/server.js"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.0.1",
+    "eslint": "^4.10.0",
+    "eslint-plugin-react": "^7.4.0"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "ejs": "^2.5.7",
+    "express": "^4.16.2",
+    "pm2": "^2.7.2"
+  }
+}
