@@ -10,9 +10,10 @@
     "presets": ["react", "env", "stage-2"]
   },
   "scripts": {
-    "predevServer": "pm2 stop lib/server.js",
-    "devServer": "pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
-    "devServer:nodemon": "nodemon --exec babel-node lib/server.js",
+    "deletePm2": "pm2 delete server",
+    "dev": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
+    "dev:windows": "set NODE_PATH=./lib && nodemon --exec babel-node lib/server.js",
+    "dev:nodemon": "nodemon --exec babel-node lib/server.js",
     "webpack": "webpack -wd",
     "test": "jest --watch"
   },
@@ -24,6 +25,7 @@
     "react-test-renderer": "^16.0.0"
   },
   "dependencies": {
+    "axios": "^0.17.0",
     "babel-cli": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-polyfill": "^6.26.0",
