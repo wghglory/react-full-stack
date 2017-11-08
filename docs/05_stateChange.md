@@ -385,3 +385,168 @@ export default class App extends Component {
 ```
 
 > 很可能出现如下 Warning: Text content did not match. Server: "Wed Nov 08 2017 23:44:54 GMT+0800 (CST)" Client: "Wed Nov 08 2017 23:44:55 GMT+0800 (CST)". 因为 client 和 server 渲染有时差。
+
+## Subscribing to state from child component directly
+
+Child component can subscribe to state, instead of passing state from parent deeply to the child.
+
+**App.js**:
+
+```diff
+// ...
+
+export default class App extends Component {
+  onStoreChange = () => {
+    this.setState(this.props.store.getState());
+  };
+
+  componentDidMount() {
+    this.subscriptionId = this.props.store.subscribe(this.onStoreChange);
+    this.props.store.startClock();
+  }
+
+  componentWillUnmount() {
+    this.props.store.unsubscribe(this.subscriptionId);
+  }
+
+  render() {
+    // ...
+
+    return (
+      <div>
+-        <Timestamp timestamp={this.state.timestamp} />
++        <Timestamp />
+        <SearchBar doSearch={this.props.store.setSearchTerm} />
+        <ArticleList articles={articles} />
+      </div>
+    );
+  }
+}
+```
+
+**Timestamp.js**:
+
+```diff
+import React from 'react';
++ import StoreProvider from './StoreProvider';
+
+class Timestamp extends React.Component {
+  render() {
+    return <div>{this.props.timestamp.toString()}</div>;
+  }
+}
+
++ function extraProps(store, originalProps) {
++   return {
++     timestamp: store.getState().timestamp
++   };
++ }
++
++ export default StoreProvider(extraProps)(Timestamp);
+```
+
+**StoreProvider original**:
+
+```jsx
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const StoreProvider = (extraProps) => (Component) => {
+  return class extends React.Component {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          store={this.context.store}
+          {...extraProps(this.context.store, this.props)}
+        />
+      );
+    }
+  };
+};
+
+export default StoreProvider;
+```
+
+Everything is working well. App component 调用 startClock，并订阅了 storeChange，react setState 触发导致 App 重新渲染，使得子组件包含 TimestampContainer、Timestamp 都被重新渲染，所以页面 clock ticking。
+
+一个问题是 TimestampContainer 并不涉及到 timestamp，TimestampContainer 没有 props 和 state，只有 context。我们是向 Timestamp 组件中传递了 extraProps -- timestamp 和 store 作为 props。如此看来没必要重新渲染 TimestampContainer。把其改成 PureComponent。
+
+**StoreProvider Pure**:
+
+```diff
+const StoreProvider = (extraProps) => (Component) => {
+-  return class extends React.Component {
++  return class extends React.PureComponent {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          store={this.context.store}
+          {...extraProps(this.context.store, this.props)}
+        />
+      );
+    }
+  };
+};
+```
+
+但这样 clock 不 ticking 了。TimestampContainer context 不变了，虽然 App context 值还在变化。TimestampContainer 和 子组件不会重新渲染，除非有 state 或者 props 的改变。而 TimestampContainer 是没有 state 和 props，我们给他 fake state, subscribe change and forceUpdate。
+
+**StoreProvider forceUpdate**:
+
+```diff
+import React from 'react';
+import PropTypes from 'prop-types';
+
+/**
+ * accept a view component, and return a container wrapper component with store from context API
+ * @param {*} Component : a view component
+ * @return a container component with store from context
+ */
+const StoreProvider = (extraProps) => (Component) => {
+  return class extends React.PureComponent {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
++    onStoreChange = () => {
++      this.forceUpdate();
++    };
++
++    componentDidMount() {
++      this.subscriptionId = this.context.store.subscribe(this.onStoreChange);
++    }
++
++    componentWillUnmount() {
++      this.props.store.unsubscribe(this.subscriptionId);
++    }
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          store={this.context.store}
+          {...extraProps(this.context.store, this.props)}
+        />
+      );
+    }
+  };
+};
+
+export default StoreProvider;
+```
