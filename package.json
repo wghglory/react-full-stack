@@ -1,17 +1,22 @@
 {
   "name": "react-full-stack",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Full stack React",
   "main": "lib/server.js",
   "repository": "https://github.com/wghglory/react-full-stack.git",
   "author": "Guanghui Wang",
   "license": "MIT",
   "babel": {
-    "presets": ["react", "env", "stage-2"]
+    "presets": [
+      "react",
+      "env",
+      "stage-2"
+    ]
   },
   "scripts": {
     "deletePm2": "pm2 delete server",
-    "dev": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
+    "dev:pm2": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
+    "dev": "NODE_PATH=./lib nodemon --exec babel-node lib/server.js",
     "dev:windows": "set NODE_PATH=./lib && nodemon --exec babel-node lib/server.js",
     "dev:nodemon": "nodemon --exec babel-node lib/server.js",
     "webpack": "webpack -wd",
@@ -38,6 +43,9 @@
     "babel-preset-stage-2": "^6.24.1",
     "ejs": "^2.5.7",
     "express": "^4.16.2",
+    "lodash.debounce": "^4.0.8",
+    "lodash.pickby": "^4.6.0",
+    "nodemon": "^1.12.1",
     "pm2": "^2.7.2",
     "prop-types": "^15.6.0",
     "react": "^16.0.0",
@@ -49,6 +57,9 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/tools/assetsTransform.js",
       "\\.(css|less)$": "<rootDir>/tools/assetsTransform.js"
     },
-    "setupFiles": ["raf/polyfill", "./tools/enzymeTestAdapterSetup.js"]
+    "setupFiles": [
+      "raf/polyfill",
+      "./tools/enzymeTestAdapterSetup.js"
+    ]
   }
 }
