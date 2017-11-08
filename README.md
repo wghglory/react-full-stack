@@ -7,6 +7,7 @@ To solve this, deliver initial data and initial markup together from server side
 
 ---
 
-* [01 Setup project, yarn, eslint](./docs/01_setup.md)
-* [02 Jest testing, Data transform, server rendering](./docs/02_fullStack.md)
-* [03 node, webpack Absolute path](./docs/03_refactor.md)
+* v1.0.0 - [01 Setup project, yarn, eslint](./docs/01_setup.md)
+* v1.1.0 - [02 Jest testing, Data transform, server rendering](./docs/02_fullStack.md)
+* v1.2.0 - [03 node, webpack Absolute path](./docs/03_refactor.md)
+* v1.3.0 - [04 context store, HOC](./docs/04_context_HOC.md)
