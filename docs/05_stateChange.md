@@ -105,3 +105,134 @@ export default SearchBar;
 **Until now, we read the initial state of searchTerm (empty string) from store. And in App.js we still setState locally, but we haven't told store the change of searchTerm. We need to subscribe store to an external state change.**
 
 ## Subscribing to an external change
+
+**State-api/index.js**:
+
+```diff
+// to publish this as npm package in future, using absolute path is easier
+class StateApi {
+  constructor(rawData) {
+    this.data = {
+      articles: this.mapArr2Obj(rawData.articles),
+      authors: this.mapArr2Obj(rawData.authors),
+      searchTerm: ''
+    };
+
++    this.subscriptions = {};
++    this.lastSubscriptionId = 0;
+  }
+
+  mapArr2Obj = (arr) => {
+    return arr.reduce((accu, curr) => {
+      accu[curr.id] = curr;
+      return accu;
+    }, {});
+  };
+
+  getState = () => {
+    return this.data;
+  };
+
++  subscribe = (cb) => {
++    this.lastSubscriptionId++;
++    this.subscriptions[this.lastSubscriptionId] = cb;
++    return this.lastSubscriptionId;
++  };
++
++  unsubscribe = (subscriptionId) => {
++    delete this.subscriptions[subscriptionId];
++  };
++
++  notifySubscribers = () => {
++    Object.values(this.subscriptions).forEach((cb) => cb());
++  };
++
++  // like dispatch an action
++  mergeWithState = (stateChange) => {
++    this.data = {
++      ...this.data,
++      ...stateChange
++    };
++    this.notifySubscribers();
++  };
++
++  setSearchTerm = (searchTerm) => {
++    this.mergeWithState({
++      searchTerm
++    });
++  };
+
+  lookupAuthor = (authorId) => {
+    return this.data.authors[authorId];
+  };
+}
+
+export default StateApi;
+```
+
+**App.js**:
+
+在 searchTerm 变化时候，`doSearch={this.props.store.setSearchTerm}` 会改变 state-api 中的 state -- `this.data`。但我们还需要让 store 通知 react component，这样才会 re-render。思路就是 subscribe。
+
+1. flux way: make StateApi extends EventEmitter
+1. redux way: we already used as above
+
+当 searchTerm 改变时，执行订阅的 onStoreChange，里面调用 react setState 方法，页面重新渲染。
+
+```diff
+import React, { Component } from 'react';
+// import DataApi from '../state-api';
+import ArticleList from './ArticleList';
+// import axios from 'axios';
+import PropTypes from 'prop-types';
+import SearchBar from './SearchBar';
+import pickBy from 'lodash.pickby';
+
+export default class App extends Component {
+  static childContextTypes = {
+    store: PropTypes.object
+  };
+  getChildContext() {
+    return {
+      store: this.props.store
+    };
+  }
+
+  state = this.props.store.getState();
+
+-  /*
+-  // Using store to manage state instead of react setState
+-  setSearchTerm = (searchTerm) => {
+-    this.setState({ searchTerm });
+-  }; */
+
++  onStoreChange = () => {
++    this.setState(this.props.store.getState());
++  };
++
++  componentDidMount() {
++    this.subscriptionId = this.props.store.subscribe(this.onStoreChange);
++  }
++
++  componentWillUnmount() {
++    this.props.store.unsubscribe(this.subscriptionId);
++  }
+
+  render() {
+    let { articles, searchTerm } = this.state;
+    if (searchTerm) {
+      articles = pickBy(articles, (value, key) => {
+        return value.title.match(searchTerm) || value.body.match(searchTerm);
+      });
+    }
+
+    return (
+      <div>
+-        <SearchBar doSearch={this.setSearchTerm} />
++        <SearchBar doSearch={this.props.store.setSearchTerm} />
+        <ArticleList articles={articles} />
+      </div>
+    );
+  }
+}
+```
