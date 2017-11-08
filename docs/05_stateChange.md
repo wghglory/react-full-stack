@@ -533,7 +533,7 @@ const StoreProvider = (extraProps) => (Component) => {
 +    }
 +
 +    componentWillUnmount() {
-+      this.props.store.unsubscribe(this.subscriptionId);
++      this.context.store.unsubscribe(this.subscriptionId);
 +    }
 
     render() {
@@ -546,6 +546,224 @@ const StoreProvider = (extraProps) => (Component) => {
       );
     }
   };
+};
+
+export default StoreProvider;
+```
+
+## Refactoring
+
+### forceUpdate guard
+
+```
+warning.js?6327:33 Warning: Can only update a mounted or mounting component. This usually means you called setState, replaceState, or forceUpdate on an unmounted component. This is a no-op.
+Please check the code for the ArticleContainer component.
+```
+
+```javascript
+const StoreProvider = (extraProps = () => ({})) => (Component) => {
+  return class extends React.PureComponent {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
+    onStoreChange = () => {
+      this.forceUpdate();
+    };
+  }
+}
+```
+
+forceUpdate() 也许 update 了一个 unmount component。顺序重要。
+
+StoreProvider.js:
+
+```diff
+const StoreProvider = (extraProps = () => ({})) => (Component) => {
+  return class extends React.PureComponent {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
+    onStoreChange = () => {
++      if (this.subscriptionId) {
++        this.forceUpdate();
++      }
+    };
+
+    componentDidMount() {
+      this.subscriptionId = this.context.store.subscribe(this.onStoreChange);
+    }
+
+    componentWillUnmount() {
+      this.context.store.unsubscribe(this.subscriptionId);
++      this.subscriptionId = null;
+    }
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          store={this.context.store}
+          {...extraProps(this.context.store, this.props)}
+        />
+      );
+    }
+  };
+};
+
+export default StoreProvider;
+```
+
+### SearchBar
+
+**App.js**: 使用 regex 使得大小写不敏感。SearchBar 也是直接从 context store 读取，不去 pass by props.
+
+```diff
+// ...
+
+export default class App extends Component {
+  static childContextTypes = {
+    store: PropTypes.object
+  };
+  getChildContext() {
+    return {
+      store: this.props.store
+    };
+  }
+
+  state = this.props.store.getState();
+
+  onStoreChange = () => {
+    this.setState(this.props.store.getState());
+  };
+
+  componentDidMount() {
+    this.subscriptionId = this.props.store.subscribe(this.onStoreChange);
+    this.props.store.startClock();
+  }
+
+  componentWillUnmount() {
+    this.props.store.unsubscribe(this.subscriptionId);
+  }
+
+  render() {
+    let { articles, searchTerm } = this.state;
+    if (searchTerm) {
++      const searchRgx = new RegExp(searchTerm, 'i');
+      articles = pickBy(articles, (value, key) => {
++        return value.title.match(searchRgx) || value.body.match(searchRgx);
+      });
+    }
+
+    return (
+      <div>
+        <Timestamp />
+-        {/* <SearchBar doSearch={this.props.store.setSearchTerm} /> */}
++        <SearchBar />
+        <ArticleList articles={articles} />
+      </div>
+    );
+  }
+}
+```
+
+**SearchBar.js**:
+
+```diff
+import React, { Component } from 'react';
+import debounce from 'lodash.debounce'; // yarn add lodash.debounce
++ import StoreProvider from './StoreProvider';
+
+class SearchBar extends Component {
+  state = {
+    searchValue: ''
+  };
+
+  doSearch = debounce(() => {
+-    // this.props.doSearch(this.state.searchValue);
++    this.props.store.setSearchTerm(this.state.searchValue);
+  }, 300);
+
+  handleSearch = (e) => {
+    // we don't want App to filter every change. We want to filter when typing id done by debounce.
+    this.setState({ searchValue: e.target.value }, () => {
+      this.doSearch();
+    });
+  };
+
+  render() {
+    return (
+      <input
+        type="search"
+        placeholder="enter search"
+        onChange={this.handleSearch}
+        value={this.state.searchValue}
+      />
+    );
+  }
+}
+
++ export default StoreProvider()(SearchBar);
+```
+
+**StoreProvider.js**:
+
+```diff
+import React from 'react';
+import PropTypes from 'prop-types';
+
++ // add default function
+- const StoreProvider = (extraProps) => (Component) => {
++ const StoreProvider = (extraProps = () => ({})) => (Component) => {
+  return class extends React.PureComponent {
+    static displayName = `${Component.name}Container`;
+
+    static contextTypes = {
+      store: PropTypes.object
+    };
+
+    onStoreChange = () => {
+      if (this.subscriptionId) {
+        this.forceUpdate();
+      }
+    };
+
+    componentDidMount() {
+      this.subscriptionId = this.context.store.subscribe(this.onStoreChange);
+    }
+
+    componentWillUnmount() {
+      this.context.store.unsubscribe(this.subscriptionId);
+      this.subscriptionId = null;
+    }
+
+    render() {
+      return (
+        <Component
+          {...this.props}
+          store={this.context.store}
+          {...extraProps(this.context.store, this.props)}
+        />
+      );
+    }
+  };
+
+  /*   const WithStoreContainer = (props, context) => {
+    return <Component {...props} store={context.store} />;
+  };
+
+  WithStoreContainer.contextTypes = {
+    store: PropTypes.object
+  };
+
+  WithStoreContainer.displayName = `${Component.name}Container`;
+
+  return WithStoreContainer; */
 };
 
 export default StoreProvider;

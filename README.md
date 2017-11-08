@@ -11,3 +11,4 @@ To solve this, deliver initial data and initial markup together from server side
 * v1.1.0 - [02 Jest testing, Data transform, server rendering](./docs/02_fullStack.md)
 * v1.2.0 - [03 node, webpack Absolute path](./docs/03_refactor.md)
 * v1.3.0 - [04 context store, HOC](./docs/04_context_HOC.md)
+* v1.4.0 - [05 stateChange, store subscribe](./docs/05_stateChange.md)
