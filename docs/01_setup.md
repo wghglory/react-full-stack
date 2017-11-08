@@ -13,6 +13,8 @@ yarn add react react-dom webpack babel-loader
 
 # use yarn script instead npm run script
 yarn dev
+
+yarn upgrade-interactive
 ```
 
 ## package.json
