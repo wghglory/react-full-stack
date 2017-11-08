@@ -4,3 +4,4 @@
 /typings
 typings.json
 /public
+/public/bundle.js
