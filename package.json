@@ -1,17 +1,13 @@
 {
   "name": "react-full-stack",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Full stack React",
   "main": "lib/server.js",
   "repository": "https://github.com/wghglory/react-full-stack.git",
   "author": "Guanghui Wang",
   "license": "MIT",
   "babel": {
-    "presets": [
-      "react",
-      "env",
-      "stage-2"
-    ]
+    "presets": ["react", "env", "stage-2"]
   },
   "scripts": {
     "deletePm2": "pm2 delete server",
@@ -57,9 +53,6 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/tools/assetsTransform.js",
       "\\.(css|less)$": "<rootDir>/tools/assetsTransform.js"
     },
-    "setupFiles": [
-      "raf/polyfill",
-      "./tools/enzymeTestAdapterSetup.js"
-    ]
+    "setupFiles": ["raf/polyfill", "./tools/enzymeTestAdapterSetup.js"]
   }
 }
