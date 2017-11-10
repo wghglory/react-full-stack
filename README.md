@@ -12,4 +12,4 @@ To solve this, deliver initial data and initial markup together from server side
 * v1.2.0 - [03 node, webpack Absolute path](./docs/03_refactor.md)
 * v1.3.0 - [04 context store, HOC](./docs/04_context_HOC.md)
 * v1.4.0 - [05 stateChange, store subscribe](./docs/05_stateChange.md)
-* v1.5.0 - [06 performance](./docs/06_performance.md)
+* v1.5.0 - [06 Performance: PureComponent instead of function component, subscribe partial state, react_perf](./docs/06_performance.md)
