@@ -5,7 +5,25 @@
 
 To solve this, deliver initial data and initial markup together from server side, and attach initial data to window object, so client side will have that data.
 
----
+## Commands
+
+For development environment, run below respectively.
+
+```bash
+yarn dev
+yarn webpack
+yarn test
+```
+
+For production environment, run below respectively.
+
+```bash
+yarn build:server  # build server-side code and run them in node environment
+yarn build:client  # build react and other frontend assets by webpack.config.prod.js
+yarn prod   # run production code
+```
+
+## Tags
 
 * v1.0.0 - [01 Setup project, yarn, eslint](./docs/01_setup.md)
 * v1.1.0 - [02 Jest testing, Data transform, server rendering](./docs/02_fullStack.md)

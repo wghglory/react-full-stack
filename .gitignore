@@ -1,7 +1,11 @@
-/node_modules
+/node_modules/
 /dist
 .DS_Store
 /typings
 typings.json
-/public
-/public/bundle.js
+public/
+public/vendor.js
+public/app.js
+public/bundle.js
+coverage/
+build/

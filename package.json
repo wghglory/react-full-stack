@@ -7,18 +7,25 @@
   "author": "Guanghui Wang",
   "license": "MIT",
   "babel": {
-    "presets": ["react", "env", "stage-2"]
+    "presets": ["react", ["env", { "target": { "node": "current" } }]],
+    "plugins": ["transform-class-properties", "transform-object-rest-spread"]
   },
   "scripts": {
     "deletePm2": "pm2 delete server",
-    "dev:pm2": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node && pm2 logs",
+    "deletePm2All": "pm2 delete all",
+    "dev:pm2": "NODE_PATH=./lib pm2 start lib/server.js --watch --interpreter babel-node --name appDev && pm2 logs",
     "dev": "NODE_PATH=./lib nodemon --exec babel-node lib/server.js",
     "dev:windows": "set NODE_PATH=./lib && nodemon --exec babel-node lib/server.js",
     "dev:nodemon": "nodemon --exec babel-node lib/server.js",
     "webpack": "webpack -wd",
     "test": "jest --watch",
+    "test:coverage": "jest --coverage",
     "addTags": "git tag v1.0.0 -a commitNumber -m 'commit content'",
-    "pushTags": "git push origin master --tags"
+    "pushTags": "git push origin master --tags",
+    "build:server": "babel lib -d build --copy-files",
+    "build:client": "NODE_ENV='production' webpack --config ./webpack.config.js -p",
+    "prod": "NODE_ENV='production' NODE_PATH=./build node build/server.js",
+    "prod:pm2": "NODE_ENV='production' NODE_PATH=./build pm2 start build/server.js -i max --name appProd"
   },
   "devDependencies": {
     "babel-eslint": "^8.0.1",
