@@ -31,3 +31,7 @@ yarn prod   # run production code
 * v1.3.0 - [04 context store, HOC](./docs/04_context_HOC.md)
 * v1.4.0 - [05 stateChange, store subscribe](./docs/05_stateChange.md)
 * v1.5.0 - [06 Performance: PureComponent instead of function component, subscribe partial state, react_perf](./docs/06_performance.md)
+
+## Reference
+
+* <https://github.com/jscomplete/reactful>
